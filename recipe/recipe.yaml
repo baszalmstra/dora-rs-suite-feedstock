@@ -100,13 +100,14 @@ outputs:
   - package:
       name: dora-rs
     build:
+      # cross-python_win-arm64 does not exist, and there are no native
+      # win-arm64 CI runners, so the Python bindings are not built for
+      # this platform.
+      skip: target_platform == "win-arm64"
       script:
         env:
           CARGO_PROFILE_RELEASE_STRIP: symbols
           OPENSSL_NO_VENDOR: "1"
-          CC_aarch64_pc_windows_msvc: clang-cl
-          AR_aarch64_pc_windows_msvc: llvm-lib
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
         content:
           - cargo-bundle-licenses --format yaml --output ./THIRDPARTY.yml
           - cd apis/python/node && ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
@@ -120,10 +121,6 @@ outputs:
         - cargo-bundle-licenses
         - if: unix
           then: pkg-config
-        - if: target_platform == "win-arm64"
-          then:
-            - clang
-            - lld
         - if: build_platform != target_platform
           then:
             - python
